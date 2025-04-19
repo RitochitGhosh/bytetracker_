@@ -1,0 +1,75 @@
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema({
+    username: {
+        type: String,
+        required: true,
+    },
+    aadharId: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+    },
+    grossAmount: { type: Number, },
+    alertOnRemaigning: { type: Number, default: 100 },
+    limitForDay: { type: Number, default: 1000 },
+    debits: [
+        {
+            category: {
+                type: String,
+                enum: ["Transport", "Food", "Medicine", "Studies", "Bill Payment", "Other"],
+                default: ["Other"]
+            },
+            title: {
+                type: String,
+                default: "",
+            },
+            notes: {
+                type: String,
+                default: "",
+            },
+            costs: {
+                type: Number,
+            },
+            date: {
+                type: Number,
+            }
+        }, 
+    ],
+    credits: [
+        {
+            title: {
+                type: String,
+                default: "",
+            },
+            notes: {
+                type: String,
+                default: "",
+            },
+            costs: {
+                type: Number,
+            },
+            date: {
+                type: Number,
+            }
+        }, 
+    ],
+    goals: [
+        {
+            isShortTermed: { type: Boolean, default: false },
+            title: { type: String, default: "" },
+            amount: { type: Number, },
+            createdAt: { type: Number, default: Date.now() },
+            remaindAt: { type: Number, default: Date.now() }
+        }
+    ]
+}, { timestamps: true });
+
+const User = mongoose.model("user", userSchema);
+
+module.exports = User
