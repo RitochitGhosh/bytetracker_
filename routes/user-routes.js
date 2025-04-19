@@ -1,18 +1,28 @@
 const express = require("express");
 
 const {
-    connectToBankAccount,
-    addExpense,
-    addCredit,
-    setAlertOnRemain,
+    handleConnectToBankAccount,
+    handleAddExpense,
+    handleAddCredit,
+    handleSetAlertOnRemain,
+    handleAfterConnectionChanges,
+    handleDeleteUserById,
+    handleGetGrossAmount,
+    handleGetExpenseByCategory,
+    handleUpdateDebitTransaction,
 } = require("../controllers/user-controller");
 
 const router = express.Router();
 
-router.post("/", connectToBankAccount);
-router.post("/add-expense", addExpense);
-router.post("/add-credit", addCredit);
-router.post("/set-alert-on-remain", setAlertOnRemain);
+router.post("/", handleConnectToBankAccount);
+router.post("/add-expense", handleAddExpense);
+router.post("/add-credit", handleAddCredit);
+router.post("/set-alert", handleSetAlertOnRemain);
+router.get("/sync-transactions", handleAfterConnectionChanges);
+router.delete("/", handleDeleteUserById);
+router.get("/total", handleGetGrossAmount);
+router.get("/filter-by-category",handleGetExpenseByCategory);
+router.post("/update-debit", handleUpdateDebitTransaction);
 
 module.exports = router;
 

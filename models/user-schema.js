@@ -1,7 +1,11 @@
 const mongoose = require("mongoose");
 
 const userSchema = new mongoose.Schema({
-    username: {
+    firstName: {
+        type: String,
+        required: true,
+    },
+    lastName: {
         type: String,
         required: true,
     },
@@ -23,7 +27,7 @@ const userSchema = new mongoose.Schema({
             category: {
                 type: String,
                 enum: ["Transport", "Food", "Medicine", "Studies", "Bill Payment", "Other"],
-                default: ["Other"]
+                default: "Other"
             },
             title: {
                 type: String,
@@ -35,6 +39,7 @@ const userSchema = new mongoose.Schema({
             },
             costs: {
                 type: Number,
+                required: true
             },
             date: {
                 type: Number,
@@ -59,6 +64,7 @@ const userSchema = new mongoose.Schema({
             }
         }, 
     ],
+    lastBankSync: { type: Number, default: 0 },
     goals: [
         {
             isShortTermed: { type: Boolean, default: false },

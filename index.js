@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(requestLogger("./log.txt"));
 
 // Routes
-app.use("/", userRouter);
+app.use("/api/", userRouter);
 
 
 app.listen(PORT, () => console.log(`Server listening on ${PORT}`));
