@@ -1,0 +1,2 @@
+MONGO_CONNECTION_URL="mongodb+srv://ghosh18ritochit:qIYjTjwbvoQGRLBk@bytetrackerdata.fzczcao.mongodb.net/"
+PORT="8080"
