@@ -2,6 +2,29 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const User = require("../models/user-schema");
 
+// GET "/api?id=_id"
+const handleGetUserById = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    const user = await User.findById(id);
+    if(!user) {
+      return res.status(404).json({
+        message: "User not found!"
+      });
+    }
+
+    return res.status(200).json(user);
+
+  } catch (error) {
+    console.error("Error _ handleGetUserById: ", error);
+    return res.status(500).json({
+      message: "Internal server error!"
+    })
+  }
+}
+
+
 // GET "/api/all-users"
 const handleGetAllUsers = async (req, res) => {
   try {
@@ -489,7 +512,57 @@ const handleGetTotalDebit = async (req, res) => {
   }
 };
 
+// GET "/api/list-credit?id=_id"
+const handleGetAllCredits = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found!",
+      });
+    }
+
+    return res.status(200).json({
+      credits: user.credits,
+    });
+  } catch (error) {
+    console.error("Error _ handleGetAllCredits:", error);
+    return res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
+};
+
+
+// GET "/api/list-debit?id=_id"
+const handleGetAllDebits = async (req, res) => {
+  try {
+    const { id } = req.query;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found!",
+      });
+    }
+
+    return res.status(200).json({
+      debits: user.debits,
+    });
+  } catch (error) {
+    console.error("Error _ handleGetAllDebits:", error);
+    return res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
+};
+
+
+
 module.exports = {
+  handleGetUserById,
   handleGetAllUsers,
   handleConnectToBankAccount,
   handleAddExpense,
@@ -504,4 +577,6 @@ module.exports = {
   handleUpdateNameOrEmail,
   handleGetTotalCredit,
   handleGetTotalDebit,
+  handleGetAllCredits,
+  handleGetAllDebits,
 };

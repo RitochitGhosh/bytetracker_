@@ -15,11 +15,15 @@ const {
     handleUpdateNameOrEmail,
     handleGetTotalCredit,
     handleGetTotalDebit,
+    handleGetUserById,
+    handleGetAllCredits,
+    handleGetAllDebits,
 } = require("../controllers/user-controller");
 
 const router = express.Router();
 
-router.get("/", handleGetAllUsers);
+router.get("/get-all-of-them", handleGetAllUsers);
+router.get("/", handleGetUserById)
 router.post("/", handleConnectToBankAccount);
 router.post("/add-expense", handleAddExpense);
 router.post("/add-credit", handleAddCredit);
@@ -33,6 +37,9 @@ router.post("/set-limit", handleSetLimitPerDay);
 router.patch("/update-user", handleUpdateNameOrEmail);
 router.get("/total-credit", handleGetTotalCredit);
 router.get("/total-debit", handleGetTotalDebit);
+router.get("/list-credit", handleGetAllCredits);
+router.get("/list-debit", handleGetAllDebits);
+
 
 module.exports = router;
 
