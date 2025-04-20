@@ -1,6 +1,7 @@
 const express = require("express");
 
 const {
+    handleGetAllUsers,
     handleConnectToBankAccount,
     handleAddExpense,
     handleAddCredit,
@@ -10,10 +11,12 @@ const {
     handleGetGrossAmount,
     handleGetExpenseByCategory,
     handleUpdateDebitTransaction,
+    handleSetLimitPerDay
 } = require("../controllers/user-controller");
 
 const router = express.Router();
 
+router.get("/", handleGetAllUsers);
 router.post("/", handleConnectToBankAccount);
 router.post("/add-expense", handleAddExpense);
 router.post("/add-credit", handleAddCredit);
@@ -23,6 +26,7 @@ router.delete("/", handleDeleteUserById);
 router.get("/total", handleGetGrossAmount);
 router.get("/filter-by-category",handleGetExpenseByCategory);
 router.post("/update-debit", handleUpdateDebitTransaction);
+router.post("/set-limit", handleSetLimitPerDay);
 
 module.exports = router;
 

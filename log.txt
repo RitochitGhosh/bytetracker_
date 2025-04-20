@@ -208,3 +208,25 @@ Sun Apr 20 2025 02:29:01 GMT+0530 (India Standard Time): ::1 GET: /api/sync-tran
 Sun Apr 20 2025 02:29:03 GMT+0530 (India Standard Time): ::1 GET: /api/sync-transactions
 
 Sun Apr 20 2025 02:29:03 GMT+0530 (India Standard Time): ::1 GET: /api/sync-transactions
+
+Sun Apr 20 2025 02:36:18 GMT+0530 (India Standard Time): ::1 POST: /api/update-debit
+
+Sun Apr 20 2025 02:36:52 GMT+0530 (India Standard Time): ::1 POST: /api/update-debit
+
+Sun Apr 20 2025 10:10:48 GMT+0530 (India Standard Time): ::1 DELETE: /api/
+
+Sun Apr 20 2025 10:16:14 GMT+0530 (India Standard Time): ::1 DELETE: /api/
+
+Sun Apr 20 2025 10:18:41 GMT+0530 (India Standard Time): ::1 DELETE: /api/
+
+Sun Apr 20 2025 10:19:58 GMT+0530 (India Standard Time): ::1 DELETE: /api/
+
+Sun Apr 20 2025 10:26:10 GMT+0530 (India Standard Time): ::1 DELETE: /api/
+
+Sun Apr 20 2025 10:30:33 GMT+0530 (India Standard Time): ::1 DELETE: /api/
+
+Sun Apr 20 2025 10:31:55 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 10:33:11 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 11:44:53 GMT+0530 (India Standard Time): ::1 GET: /api/

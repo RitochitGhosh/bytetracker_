@@ -5,15 +5,15 @@ const User = require("../models/user-schema");
 // GET "/api/all-users"
 const handleGetAllUsers = async (req, res) => {
   try {
-    const allUsers = User.find({});
+    const allUsers = await User.find({});
 
     if (!allUsers) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "Users not found!",
       });
     }
 
-    res.status(200).json(allUsers);
+    return res.status(200).json(allUsers);
   } catch (error) {
     console.error("Error _ handleGetAllUsers: ", error);
     res.status(500).json({
@@ -22,7 +22,7 @@ const handleGetAllUsers = async (req, res) => {
   }
 };
 
-// POST "/api/" -> Post aadharId, firstName, lastName, email in req.body
+// GET "/api/" -> Post aadharId, firstName, lastName, email in req.body
 const handleConnectToBankAccount = async (req, res) => {
   try {
     const { aadharId, firstName, lastName, email } = req.body;
@@ -33,12 +33,12 @@ const handleConnectToBankAccount = async (req, res) => {
     );
 
     if (!user) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "User Not found!",
       });
     }
 
-    // Fetch total amount from central DB
+    // Fetch total amount from bank
     const { data: totalAmount } = await axios.get(
       `http://localhost:8000/api/total?aadharId=${aadharId}`
     );
@@ -160,7 +160,7 @@ const handleAddCredit = async (req, res) => {
     });
 
     // Check balance
-    if (user.grossAmount < cost) {
+    if (user.grossAmount < user.alertOnRemaigning) {
       return res.status(400).json({ message: "Insufficient balance!" });
     }
 
@@ -178,7 +178,7 @@ const handleSetAlertOnRemain = async (req, res) => {
     const { newAlertOnRemaigning } = req.body;
 
     if (!newAlertOnRemaigning) {
-      res.status(400).json({
+      return res.status(400).json({
         message: "set alert field is missing!",
       });
     }
@@ -190,9 +190,44 @@ const handleSetAlertOnRemain = async (req, res) => {
 
     return res.status(200).json({ message: "Alert updated!", user });
   } catch (err) {
-    return res
-      .status(500)
-      .json({ message: "Internal server error!", error: err.message });
+    console.error("Error _ handleSetAlertOnRemain: ", err);
+    return res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
+};
+
+// POST "api/set-limit?id=_id"
+const handleSetLimitPerDay = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { newLimit } = req.body;
+
+    if (!newLimit) {
+      return res.status(400).json({
+        message: "New limit is required!",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found!",
+      });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(id, {
+      limitForDay: newLimit,
+    });
+
+    return res.status(200).json({
+      message: "Updated successfully!",
+    });
+  } catch (error) {
+    console.error("Error _ handleSetLimitPerDay: ", error);
+    return res.status(500).json({
+      message: "Internal Server error!",
+    });
   }
 };
 
@@ -267,44 +302,51 @@ const handleAfterConnectionChanges = async (req, res) => {
 // DELETE "/api?id=_id"
 const handleDeleteUserById = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { id } = req.query;
     const deletedUser = await User.findByIdAndDelete(id);
 
     if (!deletedUser) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "User not found!",
       });
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Successfully deleted user!",
     });
   } catch (error) {
     console.error("Error _ handleDeleteUserById: ", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Internal server error!",
     });
   }
 };
 
-
+// GET "/api/total?id=_id"
 const handleGetGrossAmount = async (req, res) => {
   try {
     const { id } = req.query;
     const user = await User.findById(id);
 
     if (!user) {
-      res.status(404).json({
+      return res.status(404).json({
         message: "User not found!",
       });
     }
     console.log(user.grossAmount);
 
-    res.status(200).json({ amount: user.grossAmount });
-  } catch (error) {}
+    return res.status(200).json({
+      amount: user.grossAmount,
+    });
+  } catch (error) {
+    console.error("Error _ handleGetGrossAmount:", error);
+    return res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
 };
 
-
+// GET "/api/filter-by-category?id=_id"
 const handleGetExpenseByCategory = async (req, res) => {
   try {
     const { id } = req.query;
@@ -341,40 +383,45 @@ const handleGetExpenseByCategory = async (req, res) => {
   }
 };
 
-
+// POST "/api/update-debit?id=_id"
 const handleUpdateDebitTransaction = async (req, res) => {
-    try {
-      const { userId } = req.query;
-      const { transactionId, category, title, notes, costs, date } = req.body;
-  
-      const user = await User.findById(userId);
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-  
-      const debitToUpdate = user.debits.id(transactionId);
-      if (!debitToUpdate) {
-        return res.status(404).json({ message: "Transaction not found" });
-      }
-  
-      // Update fields if provided
-      if (category) debitToUpdate.category = category;
-      if (title) debitToUpdate.title = title;
-      if (notes) debitToUpdate.notes = notes;
-      if (costs !== undefined) debitToUpdate.costs = costs;
-      if (date !== undefined) debitToUpdate.date = date;
-  
-      await user.save();
-  
-      return res.status(200).json({ message: "Transaction updated successfully", updated: debitToUpdate });
-    } catch (err) {
-      console.error("Error updating debit transaction:", err.message);
-      return res.status(500).json({ message: "Internal server error", error: err.message });
+  try {
+    const { id } = req.query;
+    const { transactionId, category, title, notes, costs, date } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
-  };
-  
+
+    const debitToUpdate = user.debits.id(transactionId);
+    if (!debitToUpdate) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    // Update fields if provided
+    if (category) debitToUpdate.category = category;
+    if (title) debitToUpdate.title = title;
+    if (notes) debitToUpdate.notes = notes;
+    if (costs !== undefined) debitToUpdate.costs = costs;
+    if (date !== undefined) debitToUpdate.date = date;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Transaction updated successfully",
+      updated: debitToUpdate,
+    });
+  } catch (err) {
+    console.error("Error updating debit transaction:", err.message);
+    return res
+      .status(500)
+      .json({ message: "Internal server error", error: err.message });
+  }
+};
 
 module.exports = {
+  handleGetAllUsers,
   handleConnectToBankAccount,
   handleAddExpense,
   handleAddCredit,
@@ -384,4 +431,5 @@ module.exports = {
   handleGetGrossAmount,
   handleGetExpenseByCategory,
   handleUpdateDebitTransaction,
+  handleSetLimitPerDay,
 };
