@@ -2,28 +2,36 @@ const axios = require("axios");
 const mongoose = require("mongoose");
 const User = require("../models/user-schema");
 
+// helper
+const filterByDate = (dataArray, afterTime) => {
+  const after = Number(afterTime);
+  if (isNaN(after)) return [];
+
+  return dataArray.filter((entry) => {
+    return typeof entry.date === "number" && entry.date >= after;
+  });
+};
+
 // GET "/api?id=_id"
 const handleGetUserById = async (req, res) => {
   try {
     const { id } = req.query;
 
     const user = await User.findById(id);
-    if(!user) {
+    if (!user) {
       return res.status(404).json({
-        message: "User not found!"
+        message: "User not found!",
       });
     }
 
     return res.status(200).json(user);
-
   } catch (error) {
     console.error("Error _ handleGetUserById: ", error);
     return res.status(500).json({
-      message: "Internal server error!"
-    })
+      message: "Internal server error!",
+    });
   }
-}
-
+};
 
 // GET "/api/all-users"
 const handleGetAllUsers = async (req, res) => {
@@ -211,7 +219,7 @@ const handleSetAlertOnRemain = async (req, res) => {
     });
     if (!user) return res.status(404).json({ message: "User not found!" });
 
-    return res.status(200).json({ message: "Alert updated!", user });
+    return res.status(200).json({ message: "Alert updated!" });
   } catch (err) {
     console.error("Error _ handleSetAlertOnRemain: ", err);
     return res.status(500).json({
@@ -410,7 +418,7 @@ const handleGetExpenseByCategory = async (req, res) => {
 const handleUpdateDebitTransaction = async (req, res) => {
   try {
     const { id } = req.query;
-    const { transactionId, category, title, notes, costs, date } = req.body;
+    const { transactionId, category, title, notes } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
@@ -426,8 +434,6 @@ const handleUpdateDebitTransaction = async (req, res) => {
     if (category) debitToUpdate.category = category;
     if (title) debitToUpdate.title = title;
     if (notes) debitToUpdate.notes = notes;
-    if (costs !== undefined) debitToUpdate.costs = costs;
-    if (date !== undefined) debitToUpdate.date = date;
 
     await user.save();
 
@@ -458,7 +464,9 @@ const handleUpdateNameOrEmail = async (req, res) => {
     if (lastName) updates.lastName = lastName;
     if (email) updates.email = email;
 
-    const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
+    const updatedUser = await User.findByIdAndUpdate(id, updates, {
+      new: true,
+    });
 
     if (!updatedUser) {
       return res.status(404).json({ message: "User not found!" });
@@ -484,7 +492,10 @@ const handleGetTotalCredit = async (req, res) => {
       return res.status(404).json({ message: "User not found!" });
     }
 
-    const totalCredit = user.credits.reduce((sum, credit) => sum + (credit.costs || 0), 0);
+    const totalCredit = user.credits.reduce(
+      (sum, credit) => sum + (credit.costs || 0),
+      0
+    );
 
     return res.status(200).json({ totalCredit });
   } catch (error) {
@@ -503,7 +514,10 @@ const handleGetTotalDebit = async (req, res) => {
       return res.status(404).json({ message: "User not found!" });
     }
 
-    const totalDebit = user.debits.reduce((sum, debit) => sum + (debit.costs || 0), 0);
+    const totalDebit = user.debits.reduce(
+      (sum, debit) => sum + (debit.costs || 0),
+      0
+    );
 
     return res.status(200).json({ totalDebit });
   } catch (error) {
@@ -535,7 +549,6 @@ const handleGetAllCredits = async (req, res) => {
   }
 };
 
-
 // GET "/api/list-debit?id=_id"
 const handleGetAllDebits = async (req, res) => {
   try {
@@ -559,7 +572,153 @@ const handleGetAllDebits = async (req, res) => {
   }
 };
 
+// GET "api/credits-filter?id=USER_ID&after=TIMESTAMP"
+const handleCreditsFilter = async (req, res) => {
+  try {
+    const { id, after } = req.query;
 
+    if (!id || !after) {
+      return res.status(400).json({ error: "Missing id or after parameter!" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found!" });
+
+    const filteredCredits = filterByDate(user.credits, after);
+
+    res.status(200).json({ data: filteredCredits });
+  } catch (error) {
+    console.error("Error _ handleCreditsFilter: ", error);
+    return res.status(500).json({
+      message: "Internal serrver error!",
+    });
+  }
+};
+
+// GET /debits-filter?id=USER_ID&after=TIMESTAMP
+const handleDebitsFilter = async (req, res) => {
+  try {
+    const { id, after } = req.query;
+
+    if (!id || !after) {
+      return res.status(400).json({ error: "Missing id or after parameter!" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found!" });
+
+    const filteredDebits = filterByDate(user.debits, after);
+
+    res.status(200).json({
+      data: filteredDebits,
+    });
+  } catch (error) {
+    console.error("Error _ handleDebitsFilter: ", error);
+    res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
+};
+
+// POST "/api/goals?id=_id"
+const handleAddGoal = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { title, amount, isShortTermed, remaindAt } = req.body;
+
+    if (!id || !title || !amount) {
+      return res.status(400).json({ error: "Missing required fields!" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found!" });
+
+    const newGoal = {
+      title,
+      amount,
+      isShortTermed: !!isShortTermed,
+      createdAt: Date.now(),
+      remaindAt: remaindAt || Date.now(),
+    };
+
+    user.goals.push(newGoal);
+    await user.save();
+
+    return res.status(201).json({
+      message: "Goal added",
+      goal: newGoal,
+    });
+  } catch (error) {
+    console.error("Error _ handleAddGoal: ", error);
+    res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
+};
+
+// PATCH "/api/goals?id=_id"
+const handleUpdateGoal = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { goalId, title, amount, isShortTermed, remaindAt } = req.body;
+
+    if (!id || !goalId) {
+      return res.status(400).json({ error: "Missing id or goalId!" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found!",
+      });
+    }
+
+    const goal = user.goals.id(goalId);
+    if (!goal) return res.status(404).json({ error: "Goal not found!" });
+
+    if (title !== undefined) goal.title = title;
+    if (amount !== undefined) goal.amount = amount;
+    if (isShortTermed !== undefined) goal.isShortTermed = isShortTermed;
+    if (remaindAt !== undefined) goal.remaindAt = remaindAt;
+
+    await user.save();
+
+    return res.status(200).json({
+      message: "Goal updated",
+      goal,
+    });
+  } catch (error) {
+    console.error("Error _ handleUpdateGoal: ", error);
+    res.status(500).json({
+      message: "Internal server error!",
+    });
+  }
+};
+
+// DELETE "/api/goals?id=_id"
+const handleDeleteGoal = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { goalId } = req.body;
+
+    if (!id || !goalId) {
+      return res.status(400).json({ error: "Missing id or goalId!" });
+    }
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ error: "User not found!" });
+
+    const goal = user.goals.id(goalId);
+    if (!goal) return res.status(404).json({ error: "Goal not found!" });
+
+    goal.remove();
+    await user.save();
+
+    res.json({ message: "Goal deleted", deletedGoalId: goalId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 module.exports = {
   handleGetUserById,
@@ -579,4 +738,9 @@ module.exports = {
   handleGetTotalDebit,
   handleGetAllCredits,
   handleGetAllDebits,
+  handleCreditsFilter,
+  handleDebitsFilter,
+  handleAddGoal,
+  handleUpdateGoal,
+  handleDeleteGoal,
 };

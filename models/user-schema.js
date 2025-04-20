@@ -26,7 +26,6 @@ const userSchema = new mongoose.Schema({
         {
             category: {
                 type: String,
-                enum: ["Transport", "Food", "Medicine", "Studies", "Bill Payment", "Other"],
                 default: "Other"
             },
             title: {
@@ -58,6 +57,7 @@ const userSchema = new mongoose.Schema({
             },
             costs: {
                 type: Number,
+                required: true,
             },
             date: {
                 type: Number,

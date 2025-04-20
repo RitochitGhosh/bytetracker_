@@ -256,3 +256,85 @@ Sun Apr 20 2025 13:14:44 GMT+0530 (India Standard Time): ::1 POST: /api/update-d
 Sun Apr 20 2025 13:15:05 GMT+0530 (India Standard Time): ::1 POST: /api/update-debit
 
 Sun Apr 20 2025 13:15:12 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 14:02:40 GMT+0530 (India Standard Time): ::1 GET: /api/get-all-of-them
+
+Sun Apr 20 2025 14:07:14 GMT+0530 (India Standard Time): ::1 GET: /api/get-all-of-them
+
+Sun Apr 20 2025 14:12:39 GMT+0530 (India Standard Time): ::1 POST: /api/
+
+Sun Apr 20 2025 14:18:09 GMT+0530 (India Standard Time): ::1 POST: /api/
+
+Sun Apr 20 2025 14:18:34 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 14:24:30 GMT+0530 (India Standard Time): ::1 POST: /api/add-expense
+
+Sun Apr 20 2025 14:32:33 GMT+0530 (India Standard Time): ::1 GET: /api/sync-transactions
+
+Sun Apr 20 2025 14:33:53 GMT+0530 (India Standard Time): ::1 GET: /api/sync-transactions
+
+Sun Apr 20 2025 14:34:01 GMT+0530 (India Standard Time): ::1 POST: /api/add-expense
+
+Sun Apr 20 2025 14:37:21 GMT+0530 (India Standard Time): ::1 POST: /api/add-credit
+
+Sun Apr 20 2025 14:39:52 GMT+0530 (India Standard Time): ::1 POST: /api/set-alert
+
+Sun Apr 20 2025 14:40:17 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 14:40:42 GMT+0530 (India Standard Time): ::1 POST: /api/set-alert
+
+Sun Apr 20 2025 14:42:13 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 14:42:36 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 14:44:36 GMT+0530 (India Standard Time): ::1 POST: /api/total
+
+Sun Apr 20 2025 14:44:43 GMT+0530 (India Standard Time): ::1 GET: /api/total
+
+Sun Apr 20 2025 14:47:02 GMT+0530 (India Standard Time): ::1 POST: /api/filter-by-category
+
+Sun Apr 20 2025 14:47:06 GMT+0530 (India Standard Time): ::1 GET: /api/filter-by-category
+
+Sun Apr 20 2025 14:48:59 GMT+0530 (India Standard Time): ::1 POST: /api/add-expense
+
+Sun Apr 20 2025 14:50:01 GMT+0530 (India Standard Time): ::1 GET: /api/filter-by-category
+
+Sun Apr 20 2025 14:55:46 GMT+0530 (India Standard Time): ::1 GET: /api/update-debit
+
+Sun Apr 20 2025 14:55:52 GMT+0530 (India Standard Time): ::1 POST: /api/update-debit
+
+Sun Apr 20 2025 14:55:59 GMT+0530 (India Standard Time): ::1 GET: /api/filter-by-category
+
+Sun Apr 20 2025 15:44:21 GMT+0530 (India Standard Time): ::ffff:127.0.0.1 GET: /
+
+Sun Apr 20 2025 15:48:04 GMT+0530 (India Standard Time): ::ffff:127.0.0.1 GET: /
+
+Sun Apr 20 2025 15:48:30 GMT+0530 (India Standard Time): ::ffff:127.0.0.1 GET: /api/get-all-of-them/
+
+Sun Apr 20 2025 15:48:31 GMT+0530 (India Standard Time): ::ffff:127.0.0.1 GET: /favicon.ico
+
+Sun Apr 20 2025 15:52:01 GMT+0530 (India Standard Time): ::ffff:127.0.0.1 GET: /api/get-all-of-them/
+
+Sun Apr 20 2025 15:52:01 GMT+0530 (India Standard Time): ::ffff:127.0.0.1 GET: /favicon.ico
+
+Sun Apr 20 2025 16:34:32 GMT+0530 (India Standard Time): ::1 GET: /api/
+
+Sun Apr 20 2025 16:35:07 GMT+0530 (India Standard Time): ::1 GET: /api/filter-by-category
+
+Sun Apr 20 2025 16:35:27 GMT+0530 (India Standard Time): ::1 GET: /api/set-limit
+
+Sun Apr 20 2025 16:35:36 GMT+0530 (India Standard Time): ::1 POST: /api/set-limit
+
+Sun Apr 20 2025 16:35:42 GMT+0530 (India Standard Time): ::1 GET: /api/get-all-of-them
+
+Sun Apr 20 2025 16:37:04 GMT+0530 (India Standard Time): ::1 POST: /api/update-user
+
+Sun Apr 20 2025 16:37:36 GMT+0530 (India Standard Time): ::1 PATCH: /api/update-user
+
+Sun Apr 20 2025 16:38:13 GMT+0530 (India Standard Time): ::1 GET: /api/total-credit
+
+Sun Apr 20 2025 16:38:51 GMT+0530 (India Standard Time): ::1 GET: /api/total-debit
+
+Sun Apr 20 2025 16:39:26 GMT+0530 (India Standard Time): ::1 GET: /api/list-credit
+
+Sun Apr 20 2025 16:39:59 GMT+0530 (India Standard Time): ::1 GET: /api/list-debit

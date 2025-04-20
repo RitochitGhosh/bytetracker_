@@ -18,6 +18,11 @@ const {
     handleGetUserById,
     handleGetAllCredits,
     handleGetAllDebits,
+    handleCreditsFilter,
+    handleDebitsFilter,
+    handleAddGoal,
+    handleUpdateGoal,
+    handleDeleteGoal,
 } = require("../controllers/user-controller");
 
 const router = express.Router();
@@ -39,6 +44,14 @@ router.get("/total-credit", handleGetTotalCredit);
 router.get("/total-debit", handleGetTotalDebit);
 router.get("/list-credit", handleGetAllCredits);
 router.get("/list-debit", handleGetAllDebits);
+router.get("/credits-filter", handleCreditsFilter);
+router.get("/debits-filter", handleDebitsFilter);
+router
+  .route("/goals")
+  .post(handleAddGoal)
+  .patch(handleUpdateGoal)
+  .delete(handleDeleteGoal);
+  
 
 
 module.exports = router;
