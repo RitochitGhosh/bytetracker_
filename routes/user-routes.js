@@ -11,7 +11,10 @@ const {
     handleGetGrossAmount,
     handleGetExpenseByCategory,
     handleUpdateDebitTransaction,
-    handleSetLimitPerDay
+    handleSetLimitPerDay,
+    handleUpdateNameOrEmail,
+    handleGetTotalCredit,
+    handleGetTotalDebit,
 } = require("../controllers/user-controller");
 
 const router = express.Router();
@@ -27,6 +30,9 @@ router.get("/total", handleGetGrossAmount);
 router.get("/filter-by-category",handleGetExpenseByCategory);
 router.post("/update-debit", handleUpdateDebitTransaction);
 router.post("/set-limit", handleSetLimitPerDay);
+router.patch("/update-user", handleUpdateNameOrEmail);
+router.get("/total-credit", handleGetTotalCredit);
+router.get("/total-debit", handleGetTotalDebit);
 
 module.exports = router;
 

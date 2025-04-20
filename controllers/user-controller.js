@@ -420,6 +420,75 @@ const handleUpdateDebitTransaction = async (req, res) => {
   }
 };
 
+// PATCH "/api/update-user"id=_id"
+const handleUpdateNameOrEmail = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { firstName, lastName, email } = req.body;
+
+    if (!firstName && !lastName && !email) {
+      return res.status(400).json({ message: "No fields to update!" });
+    }
+
+    const updates = {};
+    if (firstName) updates.firstName = firstName;
+    if (lastName) updates.lastName = lastName;
+    if (email) updates.email = email;
+
+    const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    return res.status(200).json({
+      message: "User information updated successfully!",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error _ handleUpdateNameOrEmail: ", error);
+    return res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+// GET "/api/total-credit?id=_id"
+const handleGetTotalCredit = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const totalCredit = user.credits.reduce((sum, credit) => sum + (credit.costs || 0), 0);
+
+    return res.status(200).json({ totalCredit });
+  } catch (error) {
+    console.error("Error _ handleGetTotalCredit: ", error);
+    return res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
+// GET "/api/total-debit?id=_id"
+const handleGetTotalDebit = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const user = await User.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const totalDebit = user.debits.reduce((sum, debit) => sum + (debit.costs || 0), 0);
+
+    return res.status(200).json({ totalDebit });
+  } catch (error) {
+    console.error("Error _ handleGetTotalDebit: ", error);
+    return res.status(500).json({ message: "Internal server error!" });
+  }
+};
+
 module.exports = {
   handleGetAllUsers,
   handleConnectToBankAccount,
@@ -432,4 +501,7 @@ module.exports = {
   handleGetExpenseByCategory,
   handleUpdateDebitTransaction,
   handleSetLimitPerDay,
+  handleUpdateNameOrEmail,
+  handleGetTotalCredit,
+  handleGetTotalDebit,
 };
