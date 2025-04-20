@@ -23,6 +23,7 @@ const {
     handleAddGoal,
     handleUpdateGoal,
     handleDeleteGoal,
+    handleUpdateDailyGoals,
 } = require("../controllers/user-controller");
 
 const router = express.Router();
@@ -51,6 +52,7 @@ router
   .post(handleAddGoal)
   .patch(handleUpdateGoal)
   .delete(handleDeleteGoal);
+  router.post("/update-daily-goals", handleUpdateDailyGoals)
   
 
 

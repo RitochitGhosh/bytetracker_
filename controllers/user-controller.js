@@ -58,10 +58,14 @@ const handleConnectToBankAccount = async (req, res) => {
   try {
     const { aadharId, firstName, lastName, email } = req.body;
 
+    console.log("Reached here...");
+
     // Check if user has bank account or not
     const { data: user } = await axios.get(
       `http://localhost:8000/api/user?aadharId=${aadharId}`
     );
+
+    console.log("Reached 1: ", user);
 
     if (!user) {
       return res.status(404).json({
@@ -73,6 +77,8 @@ const handleConnectToBankAccount = async (req, res) => {
     const { data: totalAmount } = await axios.get(
       `http://localhost:8000/api/total?aadharId=${aadharId}`
     );
+
+    console.log("Reached 2: ", totalAmount);
 
     // Create user in local DB (port 6000)
     const newUser = new User({
@@ -86,11 +92,13 @@ const handleConnectToBankAccount = async (req, res) => {
       goals: [],
     });
 
+    console.log("Reached 3: ",newUser);
+
     await newUser.save();
 
     return res.status(201).json({
       message: "User created successfully!",
-      id: newUser._id, // add to queryparams
+      id: newUser._id,
     });
   } catch (error) {
     console.error("Error _ handleConnectToBankAccount: ", error);
@@ -624,7 +632,7 @@ const handleDebitsFilter = async (req, res) => {
 const handleAddGoal = async (req, res) => {
   try {
     const { id } = req.query;
-    const { title, amount, isShortTermed, remaindAt } = req.body;
+    const { title, priority, amount, isShortTermed, remaindAt } = req.body;
 
     if (!id || !title || !amount) {
       return res.status(400).json({ error: "Missing required fields!" });
@@ -636,6 +644,7 @@ const handleAddGoal = async (req, res) => {
     const newGoal = {
       title,
       amount,
+      priority,
       isShortTermed: !!isShortTermed,
       createdAt: Date.now(),
       remaindAt: remaindAt || Date.now(),
@@ -660,7 +669,7 @@ const handleAddGoal = async (req, res) => {
 const handleUpdateGoal = async (req, res) => {
   try {
     const { id } = req.query;
-    const { goalId, title, amount, isShortTermed, remaindAt } = req.body;
+    const { goalId, title, amount, priority, isShortTermed, remaindAt } = req.body;
 
     if (!id || !goalId) {
       return res.status(400).json({ error: "Missing id or goalId!" });
@@ -678,6 +687,7 @@ const handleUpdateGoal = async (req, res) => {
 
     if (title !== undefined) goal.title = title;
     if (amount !== undefined) goal.amount = amount;
+    if (priority !== undefined) goal.priority = priority;
     if (isShortTermed !== undefined) goal.isShortTermed = isShortTermed;
     if (remaindAt !== undefined) goal.remaindAt = remaindAt;
 
@@ -720,6 +730,99 @@ const handleDeleteGoal = async (req, res) => {
   }
 };
 
+
+// POST /api/update-daily-goals
+const handleUpdateDailyGoals = async (req, res) => {
+  try {
+    const { id } = req.body;
+    
+    if (!id) {
+      return res.status(400).json({ error: "Missing user ID!" });
+    }
+    
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found!" });
+    }
+    
+    const dailyLimit = user.limitForDay || 0;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayTimestamp = today.getTime();
+    
+    const todayDebits = filterByDate(user.debits, todayTimestamp);
+    const todaySpent = todayDebits.reduce((total, debit) => total + debit.costs, 0);
+    
+    const remainingBalance = dailyLimit - todaySpent;
+    
+    const sum = user.goals.reduce((acc, goal) => acc + goal.priority, 0);
+    const noOfGoals = user.goals.length;
+    const quantumPriority = noOfGoals === 0 ? 0 : sum / noOfGoals;
+    
+    const sortedGoals = [...user.goals].sort((a, b) => b.priority - a.priority);
+    
+    const goalUpdates = [];
+    
+    if (remainingBalance >= 0) {
+      for (const goal of sortedGoals) {
+        const priorityRatio = (goal.priority * quantumPriority) / sum;
+        const allocation = remainingBalance * priorityRatio;
+        
+        goalUpdates.push({
+          goalId: goal._id,
+          amount: allocation,
+          type: "allocation"
+        });
+      }
+    } else {
+      const reverseSortedGoals = [...sortedGoals].reverse();
+      let remainingDeficit = Math.abs(remainingBalance);
+      
+      for (const goal of reverseSortedGoals) {
+        const currentGoalAmount = goal.amount || 0;
+        const maxCut = Math.min(currentGoalAmount, remainingDeficit);
+        
+        if (maxCut > 0) {
+          goalUpdates.push({
+            goalId: goal._id,
+            amount: -maxCut,
+            type: "reduction"
+          });
+          
+          remainingDeficit -= maxCut;
+          
+          if (remainingDeficit <= 0) break;
+        }
+      }
+    }
+    
+    // Update goals in database
+    for (const update of goalUpdates) {
+      await User.updateOne(
+        { _id: id, "goals._id": update.goalId },
+        { $inc: { "goals.$.amount": update.amount } }
+      );
+    }
+    
+    
+    return res.status(200).json({
+      success: true,
+      dailyLimit,
+      spent: todaySpent,
+      remainingBalance,
+      goalUpdates
+    });
+    
+  } catch (error) {
+    console.error("Error _ handleUpdateDailyGoals: ", error);
+    return res.status(500).json({
+      message: "Internal server error!",
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   handleGetUserById,
   handleGetAllUsers,
@@ -743,4 +846,5 @@ module.exports = {
   handleAddGoal,
   handleUpdateGoal,
   handleDeleteGoal,
+  handleUpdateDailyGoals,
 };

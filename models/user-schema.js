@@ -68,10 +68,26 @@ const userSchema = new mongoose.Schema({
     goals: [
         {
             isShortTermed: { type: Boolean, default: false },
+            priority: { type: Number, min: 1, max: 5, default: 1  },
             title: { type: String, default: "" },
             amount: { type: Number, },
             createdAt: { type: Number, default: Date.now() },
             remaindAt: { type: Number, default: Date.now() }
+        }
+    ],
+    dailyUpdates: [
+        {
+            date: { type: Number },
+            dailyLimit: { type: Number },
+            spent: { type: Number },
+            remainingBalance: { type: Number },
+            goalUpdates: [
+                {
+                    goalId: { type: mongoose.Schema.Types.ObjectId, ref: 'user.goals' },
+                    amount: { type: Number },
+                    type: { type: String, enum: ['allocation', 'reduction'] }
+                }
+            ]
         }
     ]
 }, { timestamps: true });
