@@ -735,77 +735,100 @@ const handleDeleteGoal = async (req, res) => {
 const handleUpdateDailyGoals = async (req, res) => {
   try {
     const { id } = req.body;
-    
+
     if (!id) {
       return res.status(400).json({ error: "Missing user ID!" });
     }
-    
+
     const user = await User.findById(id);
     if (!user) {
       return res.status(404).json({ error: "User not found!" });
     }
-    
+
     const dailyLimit = user.limitForDay || 0;
-    
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayTimestamp = today.getTime();
-    
+
     const todayDebits = filterByDate(user.debits, todayTimestamp);
     const todaySpent = todayDebits.reduce((total, debit) => total + debit.costs, 0);
-    
+
     const remainingBalance = dailyLimit - todaySpent;
-    
-    const sum = user.goals.reduce((acc, goal) => acc + goal.priority, 0);
-    const noOfGoals = user.goals.length;
+
+    const goals = user.goals.filter(goal => (goal.amount ?? 0) > (goal.currentlySaved ?? 0));
+    const sum = goals.reduce((acc, goal) => acc + goal.priority, 0);
+    const noOfGoals = goals.length;
     const quantumPriority = noOfGoals === 0 ? 0 : sum / noOfGoals;
-    
-    const sortedGoals = [...user.goals].sort((a, b) => b.priority - a.priority);
-    
+
+    const sortedGoals = [...goals].sort((a, b) => b.priority - a.priority);
+
     const goalUpdates = [];
-    
+
     if (remainingBalance >= 0) {
+      let balanceLeft = remainingBalance;
+
       for (const goal of sortedGoals) {
         const priorityRatio = (goal.priority * quantumPriority) / sum;
-        const allocation = remainingBalance * priorityRatio;
-        
+        const potentialAllocation = balanceLeft * priorityRatio;
+
+        const remainingToTarget = (goal.amount ?? 0) - (goal.currentlySaved ?? 0);
+        const allocation = Math.min(potentialAllocation, remainingToTarget);
+
+        if (allocation <= 0) continue;
+
         goalUpdates.push({
           goalId: goal._id,
           amount: allocation,
           type: "allocation"
         });
+
+        balanceLeft -= allocation;
+
+        // Update the goal's currentlySaved
+        await User.updateOne(
+          { _id: id, "goals._id": goal._id },
+          {
+            $inc: {
+              "goals.$.currentlySaved": allocation
+            }
+          }
+        );
+
+        if (balanceLeft <= 0) break;
       }
+
     } else {
       const reverseSortedGoals = [...sortedGoals].reverse();
       let remainingDeficit = Math.abs(remainingBalance);
-      
+
       for (const goal of reverseSortedGoals) {
-        const currentGoalAmount = goal.amount || 0;
-        const maxCut = Math.min(currentGoalAmount, remainingDeficit);
-        
+        const currentGoalSaved = goal.currentlySaved || 0;
+        const maxCut = Math.min(currentGoalSaved, remainingDeficit);
+
         if (maxCut > 0) {
           goalUpdates.push({
             goalId: goal._id,
             amount: -maxCut,
             type: "reduction"
           });
-          
+
           remainingDeficit -= maxCut;
-          
+
+          await User.updateOne(
+            { _id: id, "goals._id": goal._id },
+            {
+              $inc: {
+                "goals.$.currentlySaved": -maxCut
+              }
+            }
+          );
+
           if (remainingDeficit <= 0) break;
         }
       }
     }
-    
-    // Update goals in database
-    for (const update of goalUpdates) {
-      await User.updateOne(
-        { _id: id, "goals._id": update.goalId },
-        { $inc: { "goals.$.amount": update.amount } }
-      );
-    }
-    
-    
+
     return res.status(200).json({
       success: true,
       dailyLimit,
@@ -813,7 +836,7 @@ const handleUpdateDailyGoals = async (req, res) => {
       remainingBalance,
       goalUpdates
     });
-    
+
   } catch (error) {
     console.error("Error _ handleUpdateDailyGoals: ", error);
     return res.status(500).json({
@@ -822,6 +845,7 @@ const handleUpdateDailyGoals = async (req, res) => {
     });
   }
 };
+
 
 module.exports = {
   handleGetUserById,

@@ -71,6 +71,7 @@ const userSchema = new mongoose.Schema({
             priority: { type: Number, min: 1, max: 5, default: 1  },
             title: { type: String, default: "" },
             amount: { type: Number, },
+            currentlySaved: {type: Number, default: 0 },
             createdAt: { type: Number, default: Date.now() },
             remaindAt: { type: Number, default: Date.now() }
         }
