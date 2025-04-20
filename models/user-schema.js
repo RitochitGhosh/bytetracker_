@@ -90,6 +90,12 @@ const userSchema = new mongoose.Schema({
                 }
             ]
         }
+    ],
+    categories: [
+        {
+            name: { type: String },
+            isArchived: { type: String , default: false }
+        }
     ]
 }, { timestamps: true });
 

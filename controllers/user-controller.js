@@ -92,7 +92,7 @@ const handleConnectToBankAccount = async (req, res) => {
       goals: [],
     });
 
-    console.log("Reached 3: ",newUser);
+    console.log("Reached 3: ", newUser);
 
     await newUser.save();
 
@@ -669,7 +669,8 @@ const handleAddGoal = async (req, res) => {
 const handleUpdateGoal = async (req, res) => {
   try {
     const { id } = req.query;
-    const { goalId, title, amount, priority, isShortTermed, remaindAt } = req.body;
+    const { goalId, title, amount, priority, isShortTermed, remaindAt } =
+      req.body;
 
     if (!id || !goalId) {
       return res.status(400).json({ error: "Missing id or goalId!" });
@@ -730,7 +731,6 @@ const handleDeleteGoal = async (req, res) => {
   }
 };
 
-
 // POST /api/update-daily-goals
 const handleUpdateDailyGoals = async (req, res) => {
   try {
@@ -752,11 +752,16 @@ const handleUpdateDailyGoals = async (req, res) => {
     const todayTimestamp = today.getTime();
 
     const todayDebits = filterByDate(user.debits, todayTimestamp);
-    const todaySpent = todayDebits.reduce((total, debit) => total + debit.costs, 0);
+    const todaySpent = todayDebits.reduce(
+      (total, debit) => total + debit.costs,
+      0
+    );
 
     const remainingBalance = dailyLimit - todaySpent;
 
-    const goals = user.goals.filter(goal => (goal.amount ?? 0) > (goal.currentlySaved ?? 0));
+    const goals = user.goals.filter(
+      (goal) => (goal.amount ?? 0) > (goal.currentlySaved ?? 0)
+    );
     const sum = goals.reduce((acc, goal) => acc + goal.priority, 0);
     const noOfGoals = goals.length;
     const quantumPriority = noOfGoals === 0 ? 0 : sum / noOfGoals;
@@ -772,7 +777,8 @@ const handleUpdateDailyGoals = async (req, res) => {
         const priorityRatio = (goal.priority * quantumPriority) / sum;
         const potentialAllocation = balanceLeft * priorityRatio;
 
-        const remainingToTarget = (goal.amount ?? 0) - (goal.currentlySaved ?? 0);
+        const remainingToTarget =
+          (goal.amount ?? 0) - (goal.currentlySaved ?? 0);
         const allocation = Math.min(potentialAllocation, remainingToTarget);
 
         if (allocation <= 0) continue;
@@ -780,7 +786,7 @@ const handleUpdateDailyGoals = async (req, res) => {
         goalUpdates.push({
           goalId: goal._id,
           amount: allocation,
-          type: "allocation"
+          type: "allocation",
         });
 
         balanceLeft -= allocation;
@@ -790,14 +796,13 @@ const handleUpdateDailyGoals = async (req, res) => {
           { _id: id, "goals._id": goal._id },
           {
             $inc: {
-              "goals.$.currentlySaved": allocation
-            }
+              "goals.$.currentlySaved": allocation,
+            },
           }
         );
 
         if (balanceLeft <= 0) break;
       }
-
     } else {
       const reverseSortedGoals = [...sortedGoals].reverse();
       let remainingDeficit = Math.abs(remainingBalance);
@@ -810,7 +815,7 @@ const handleUpdateDailyGoals = async (req, res) => {
           goalUpdates.push({
             goalId: goal._id,
             amount: -maxCut,
-            type: "reduction"
+            type: "reduction",
           });
 
           remainingDeficit -= maxCut;
@@ -819,8 +824,8 @@ const handleUpdateDailyGoals = async (req, res) => {
             { _id: id, "goals._id": goal._id },
             {
               $inc: {
-                "goals.$.currentlySaved": -maxCut
-              }
+                "goals.$.currentlySaved": -maxCut,
+              },
             }
           );
 
@@ -834,18 +839,83 @@ const handleUpdateDailyGoals = async (req, res) => {
       dailyLimit,
       spent: todaySpent,
       remainingBalance,
-      goalUpdates
+      goalUpdates,
     });
-
   } catch (error) {
     console.error("Error _ handleUpdateDailyGoals: ", error);
     return res.status(500).json({
       message: "Internal server error!",
-      error: error.message
+      error: error.message,
     });
   }
 };
 
+// POST "/api/category?id=_id"
+const handleAddCategory = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { category } = req.body;
+
+    if (!id || !category) {
+      return res.status(400).json({
+        error: "id and category required!",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found!",
+      });
+    }
+
+    user.categories.push({
+      name: category,
+      isArchived: false,
+    });
+
+    return res.status(200).json({
+      message: "New category added!",
+    });
+  } catch (error) {
+    console.error("Error _ handleAddCategory: ", error);
+    return res.status(500).json({
+      error: "internal server error!",
+    });
+  }
+};
+
+// PATCH "/api/category?id=_id"
+const handleUpdateCategory = async (req, res) => {
+  try {
+    const { id } = req.query;
+    const { name, isArchived } = req.body;
+
+    if (!id || !name || !isArchived) {
+      return res.status(400).json({
+        error: "Fields are required!",
+      });
+    }
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        error: "User not found!",
+      });
+    }
+
+    user.categories.updateOne((category) => category.name === name, isArchived);
+
+    return res.status(200).json({
+      message: "Succesfully updated!",
+    });
+  } catch (error) {
+    console.error("Error _ handleUpdateCategory: ", error);
+    return res.status(500).json({
+      error: "Internal server error!",
+    });
+  }
+};
 
 module.exports = {
   handleGetUserById,
@@ -871,4 +941,6 @@ module.exports = {
   handleUpdateGoal,
   handleDeleteGoal,
   handleUpdateDailyGoals,
+  handleAddCategory,
+  handleUpdateCategory,
 };
